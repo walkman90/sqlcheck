@@ -56,7 +56,8 @@ bool IsCreateStatement(const std::string& sql_statement){
 
 void CheckMultiValuedAttribute(Configuration& state,
                                const std::string& sql_statement,
-                               bool& print_statement){
+                               bool& print_statement,
+                               int line){
 
   std::regex pattern("(id\\s+varchar)|(id\\s+text)|(id\\s+regexp)");
   std::string title = "Multi-Valued Attribute";
@@ -82,13 +83,15 @@ void CheckMultiValuedAttribute(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckRecursiveDependency(Configuration& state,
                               const std::string& sql_statement,
-                              bool& print_statement){
+                              bool& print_statement,
+                              int line){
 
   std::string table_name = GetTableName(sql_statement);
   if(table_name.empty()){
@@ -119,13 +122,15 @@ void CheckRecursiveDependency(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckPrimaryKeyExists(Configuration& state,
                            const std::string& sql_statement,
-                           bool& print_statement){
+                           bool& print_statement,
+                           int line){
 
   auto create_statement = IsCreateStatement(sql_statement);
   if(create_statement == false){
@@ -154,13 +159,15 @@ void CheckPrimaryKeyExists(Configuration& state,
                pattern_type,
                title,
                message,
-               false);
+               true,
+               line);
 
 }
 
 void CheckGenericPrimaryKey(Configuration& state,
                             const std::string& sql_statement,
-                            bool& print_statement){
+                            bool& print_statement,
+                            int line){
 
   auto ddl_statement = IsDDLStatement(sql_statement);
   if(ddl_statement == false){
@@ -188,13 +195,15 @@ void CheckGenericPrimaryKey(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckForeignKeyExists(Configuration& state,
                            const std::string& sql_statement,
-                           bool& print_statement){
+                           bool& print_statement,
+                           int line){
 
   auto create_statement = IsCreateStatement(sql_statement);
   if(create_statement == false){
@@ -227,13 +236,15 @@ void CheckForeignKeyExists(Configuration& state,
                pattern_type,
                title,
                message,
-               false);
+               true,
+               line);
 
 }
 
 void CheckVariableAttribute(Configuration& state,
                             const std::string& sql_statement,
-                            bool& print_statement){
+                            bool& print_statement,
+                            int line){
 
   std::string table_name = GetTableName(sql_statement);
   if(table_name.empty()){
@@ -283,13 +294,15 @@ void CheckVariableAttribute(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckMetadataTribbles(Configuration& state,
                            const std::string& sql_statement,
-                           bool& print_statement){
+                           bool& print_statement,
+                           int line){
 
   auto ddl_statement = IsDDLStatement(sql_statement);
   if(ddl_statement == false){
@@ -337,7 +350,8 @@ void CheckMetadataTribbles(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
@@ -345,7 +359,8 @@ void CheckMetadataTribbles(Configuration& state,
 
 void CheckFloat(Configuration& state,
                 const std::string& sql_statement,
-                bool& print_statement){
+                bool& print_statement,
+                int line){
 
   std::regex pattern("(float)|(real)|(double precision)|(0\\.000[0-9]*)");
   std::string title = "Imprecise Data Type";
@@ -370,13 +385,15 @@ void CheckFloat(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckValuesInDefinition(Configuration& state,
                              const std::string& sql_statement,
-                             bool& print_statement){
+                             bool& print_statement,
+                             int line){
 
   auto ddl_statement = IsDDLStatement(sql_statement);
   if(ddl_statement == false){
@@ -414,13 +431,15 @@ void CheckValuesInDefinition(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckExternalFiles(Configuration& state,
                         const std::string& sql_statement,
-                        bool& print_statement){
+                        bool& print_statement,
+                        int line){
 
   std::regex pattern("(path varchar)|(unlink\\s?\\()");
   std::string title = "Files Are Not SQL Data Types";
@@ -445,13 +464,15 @@ void CheckExternalFiles(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckIndexCount(Configuration& state,
                      const std::string& sql_statement,
-                     bool& print_statement){
+                     bool& print_statement,
+                     int line){
 
   auto create_statement = IsCreateStatement(sql_statement);
   if(create_statement == false){
@@ -483,13 +504,15 @@ void CheckIndexCount(Configuration& state,
                title,
                message,
                true,
+               line,
                min_count);
 
 }
 
 void CheckIndexAttributeOrder(Configuration& state,
                               const std::string& sql_statement,
-                              bool& print_statement){
+                              bool& print_statement,
+                              int line){
 
 
   std::regex pattern("(create index)");
@@ -514,7 +537,8 @@ void CheckIndexAttributeOrder(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
@@ -523,7 +547,8 @@ void CheckIndexAttributeOrder(Configuration& state,
 
 void CheckSelectStar(Configuration& state,
                      const std::string& sql_statement,
-                     bool& print_statement){
+                     bool& print_statement,
+                     int line){
 
   std::regex pattern("(select\\s+\\*)");
   std::string title = "SELECT *";
@@ -572,13 +597,15 @@ void CheckSelectStar(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckJoinWithoutEquality(Configuration& state,
                               const std::string& sql_statement,
-                              bool& print_statement) {
+                              bool& print_statement,
+                              int line) {
   std::regex pattern("join[\\s\\._]?[^=]+?(left|right|join|where|case)");
   std::string title = "JOIN Without Equality Check";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
@@ -595,12 +622,19 @@ void CheckJoinWithoutEquality(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 }
 
 void CheckNullUsage(Configuration& state,
                     const std::string& sql_statement,
-                    bool& print_statement) {
+                    bool& print_statement,
+                    int line) {
+
+  auto create_statement = IsCreateStatement(sql_statement);
+  if(create_statement == true){
+    return;
+  }
 
   std::regex pattern("(null)");
   std::string title = "NULL Usage";
@@ -625,13 +659,15 @@ void CheckNullUsage(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckNotNullUsage(Configuration& state,
                        const std::string& sql_statement,
-                       bool& print_statement) {
+                       bool& print_statement,
+                       int line) {
 
   auto create_statement = IsCreateStatement(sql_statement);
   if(create_statement == false){
@@ -656,13 +692,15 @@ void CheckNotNullUsage(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckConcatenation(Configuration& state,
                         const std::string& sql_statement,
-                        bool& print_statement) {
+                        bool& print_statement,
+                        int line) {
 
 
   std::regex pattern("\\|\\|");
@@ -686,13 +724,15 @@ void CheckConcatenation(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckGroupByUsage(Configuration& state,
                        const std::string& sql_statement,
-                       bool& print_statement){
+                       bool& print_statement,
+                       int line){
 
   std::regex pattern("(group by)");
   std::string title = "GROUP BY Usage";
@@ -719,14 +759,16 @@ void CheckGroupByUsage(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 
 }
 
 void CheckOrderByRand(Configuration& state,
                       const std::string& sql_statement,
-                      bool& print_statement){
+                      bool& print_statement,
+                      int line){
 
   std::regex pattern("(order by rand\\()");
   std::string title = "ORDER BY RAND Usage";
@@ -755,13 +797,15 @@ void CheckOrderByRand(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckPatternMatching(Configuration& state,
                           const std::string& sql_statement,
-                          bool& print_statement){
+                          bool& print_statement,
+                          int line){
 
   std::regex pattern("(\blike\b)|(\bregexp\b)|(\bsimilar to\b)");
   std::string title = "Pattern Matching Usage";
@@ -785,13 +829,15 @@ void CheckPatternMatching(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckSpaghettiQuery(Configuration& state,
                          const std::string& sql_statement,
-                         bool& print_statement){
+                         bool& print_statement,
+                         int line){
 
   std::regex true_pattern(".+");
   std::regex false_pattern("pattern must not exist");
@@ -839,13 +885,15 @@ void CheckSpaghettiQuery(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckJoinCount(Configuration& state,
                     const std::string& sql_statement,
-                    bool& print_statement){
+                    bool& print_statement,
+                    int line){
 
   std::regex pattern("(\bjoin\b)");
   std::string title = "Reduce Number of JOINs";
@@ -866,13 +914,15 @@ void CheckJoinCount(Configuration& state,
                title,
                message,
                true,
+               line,
                min_count);
 
 }
 
 void CheckDistinctCount(Configuration& state,
                         const std::string& sql_statement,
-                        bool& print_statement){
+                        bool& print_statement,
+                        int line){
 
   std::regex pattern("(\bdistinct\b)");
   std::string title = "Eliminate Unnecessary DISTINCT Conditions";
@@ -896,13 +946,15 @@ void CheckDistinctCount(Configuration& state,
                title,
                message,
                true,
+               line,
                min_count);
 
 }
 
 void CheckImplicitColumns(Configuration& state,
                           const std::string& sql_statement,
-                          bool& print_statement){
+                          bool& print_statement,
+                          int line){
 
   std::regex pattern("(insert into \\S+ values)");
   std::string title = "Implicit Column Usage";
@@ -924,13 +976,15 @@ void CheckImplicitColumns(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckHaving(Configuration& state,
                  const std::string& sql_statement,
-                 bool& print_statement){
+                 bool& print_statement,
+                 int line){
 
   std::regex pattern("(\bhaving\b)");
   std::string title = "HAVING Clause Usage";
@@ -953,13 +1007,15 @@ void CheckHaving(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckNesting(Configuration& state,
                   const std::string& sql_statement,
-                  bool& print_statement){
+                  bool& print_statement,
+                  int line){
 
   std::regex pattern("(\bselect\b)");
   std::string title = "Nested sub queries";
@@ -989,6 +1045,7 @@ void CheckNesting(Configuration& state,
                title,
                message,
                true,
+               line,
                min_count);
 
 
@@ -996,7 +1053,8 @@ void CheckNesting(Configuration& state,
 
 void CheckOr(Configuration& state,
                  const std::string& sql_statement,
-                 bool& print_statement){
+                 bool& print_statement,
+                 int line){
 
   std::regex pattern("(\bor\b)");
   std::string title = "OR Usage";
@@ -1021,15 +1079,18 @@ void CheckOr(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckUnion(Configuration& state,
                 const std::string& sql_statement,
-                bool& print_statement){
+                bool& print_statement,
+                int line){
 
-  std::regex pattern("(union)");
+  std::regex pattern("(union(?!\\sall))");
+//  std::regex pattern("(union)");
   std::string title = "UNION Usage";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
 
@@ -1047,13 +1108,15 @@ void CheckUnion(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
 void CheckDistinctJoin(Configuration& state,
                        const std::string& sql_statement,
-                       bool& print_statement){
+                       bool& print_statement,
+                       int line){
 
   std::regex pattern("(distinct.*join)");
   std::string title = "DISTINCT & JOIN Usage";
@@ -1078,7 +1141,8 @@ void CheckDistinctJoin(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 
@@ -1088,7 +1152,8 @@ void CheckDistinctJoin(Configuration& state,
 
 void CheckReadablePasswords(Configuration& state,
                             const std::string& sql_statement,
-                            bool& print_statement){
+                            bool& print_statement,
+                            int line){
 
   std::regex pattern("(password varchar)|(password text)|(password =)| "
       "(pwd varchar)|(pwd text)|(pwd =)");
@@ -1118,7 +1183,8 @@ void CheckReadablePasswords(Configuration& state,
                pattern_type,
                title,
                message,
-               true);
+               true,
+               line);
 
 }
 

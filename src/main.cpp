@@ -20,6 +20,7 @@ DEFINE_bool(v, false, "Display verbose warnings");
 DEFINE_bool(verbose, false, "Display verbose warnings");
 DEFINE_string(d, "", "Query delimiter string (default -- ;)");
 DEFINE_string(delimiter, "", "Query delimiter string (default -- ;)");
+DEFINE_bool(skip_me, false, "Skip printing Matching expression (default false)");
 DEFINE_bool(h, false, "Print help message");
 DEFINE_uint64(r, sqlcheck::RISK_LEVEL_ALL,
               "Set of anti-patterns to check \n"
@@ -40,6 +41,7 @@ void ConfigureChecker(sqlcheck::Configuration &state) {
   state.risk_level = sqlcheck::RISK_LEVEL_ALL;
   state.file_name = "";
   state.delimiter = ";";
+  state.skip_me = false;
   state.testing_mode = false;
   state.verbose = false;
   state.color_mode = false;
@@ -47,6 +49,7 @@ void ConfigureChecker(sqlcheck::Configuration &state) {
   // Configure checker
   state.color_mode = FLAGS_c || FLAGS_color_mode;
   state.verbose = FLAGS_v || FLAGS_verbose;
+  state.skip_me = FLAGS_skip_me;
   if(FLAGS_f.empty() == false){
     state.file_name = FLAGS_f;
   }
@@ -92,6 +95,7 @@ void Usage() {
       "   -c -color_mode         :  Display warnings in color mode \n"
       "   -v -verbose            :  Display verbose warnings \n"
       "   -d -delimiter          :  Query delimiter string (; by default) \n"
+      "   -skip_me               :  Skip printing Matching expression (default false) \n"
       "   -h -help               :  Print help message \n";
 }
 

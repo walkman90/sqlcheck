@@ -43,8 +43,14 @@ bool Check(Configuration& state) {
 
   std::cout << "==================== Results ===================\n";
 
+  int countStatements = 0;
+  int lineNumber = 0;
+  int statement_start = 0;
+  bool statement_started = false;
+
   // Go over the input stream
   while(!input->eof()){
+    lineNumber++;
 
     // Get a line from the input stream
     input->getline(buffer, fragment_size);
@@ -53,6 +59,15 @@ bool Check(Configuration& state) {
     // Append fragment to statement
     if(statement_fragment.empty() == false){
       sql_statement << statement_fragment << " ";
+
+      if(statement_fragment != "\r" && !statement_started) {
+        statement_started = true;
+        statement_start = lineNumber;
+
+//         std::cout << "Fragment: _";
+//         std::cout << statement_fragment;
+//         std::cout << "_\n";
+      }
     }
 
     // Check for delimiter in line
@@ -60,17 +75,35 @@ bool Check(Configuration& state) {
     if (location != std::string::npos) {
 
       // Check the statement
-      CheckStatement(state, sql_statement.str());
+//      std::cout << "Statement start line: ";
+//      std::cout << statement_start;
+//      std::cout << "\n";
+      countStatements++;
+      CheckStatement(state, sql_statement.str(), statement_start);
 
       // Reset statement
       sql_statement.str(std::string());
-
+      statement_started = false;
     }
 
   }
 
+  if(statement_started) {
+      auto message =
+            "● Statement should end with ';':\n"
+            "Please add ';' to enable scanner for this statement";
+
+      std::cout << "-------------------------------------------------";
+      std::cout << "\nSQL Statement: " << sql_statement.str();
+      std::cout << "\nSummary: [" << state.file_name << "]: (HINTS) (QUERY ANTI-PATTERN) Missing ';' in the statement end";
+      std::cout << "\nStatement First Line: " << statement_start << "\n";
+
+      std::cout << message;
+      std::cout << "\n";
+  }
+
   // Print summary
-  if(state.checker_stats[RISK_LEVEL_ALL] == 0){
+  if(!statement_started && state.checker_stats[RISK_LEVEL_ALL] == 0){
     std::cout << "No issues found.\n";
   }
   else {
@@ -150,7 +183,8 @@ void PrintMessage(Configuration& state,
                   const RiskLevel pattern_risk_level,
                   const PatternType pattern_type,
                   const std::string title,
-                  const std::string message){
+                  const std::string message,
+                  const int line){
 
   ColorModifier red(ColorCode::FG_RED, state.color_mode, true);
   ColorModifier green(ColorCode::FG_GREEN, state.color_mode, true);
@@ -162,16 +196,16 @@ void PrintMessage(Configuration& state,
     ColorModifier regular(ColorCode::FG_DEFAULT, state.color_mode, false);
 
     if(state.color_mode == true){
-      std::cout << "SQL Statement: " << red << WrapText(sql_statement) << regular << "\n";
+      std::cout << "SQL Statement: " << red << sql_statement << regular << "\n";
     }
     else {
-      std::cout << "SQL Statement: " << WrapText(sql_statement) << "\n";
+      std::cout << "SQL Statement: " << sql_statement << "\n";
     }
   }
 
   if(state.color_mode == true){
     if(state.file_name.empty() == false){
-      std::cout << "[" << state.file_name << "]: ";
+      std::cout << "Summary: [" << state.file_name << "]: ";
     }
 
     std::cout << "(" << green << RiskLevelToString(pattern_risk_level) << regular << ") ";
@@ -179,13 +213,15 @@ void PrintMessage(Configuration& state,
   }
   else {
     if(state.file_name.empty() == false){
-      std::cout << "[" << state.file_name << "]: ";
+      std::cout << "Summary: [" << state.file_name << "]: ";
     }
 
     std::cout << "(" << RiskLevelToString(pattern_risk_level) << ") ";
     std::cout << "(" << PatternTypeToString(pattern_type) << ") ";
     std::cout << title << "\n";
   }
+
+  std::cout << "Statement First Line: " << line << "\n";
 
   // Print detailed message only in verbose mode
   if(state.verbose == true){
@@ -207,6 +243,7 @@ void CheckPattern(Configuration& state,
                   const std::string title,
                   const std::string message,
                   const bool exists,
+                  const int line,
                   const size_t min_count){
 
   //std::cout << "PATTERN LEVEL: " << pattern_risk_level << "\n";
@@ -244,15 +281,16 @@ void CheckPattern(Configuration& state,
                  pattern_risk_level,
                  pattern_type,
                  title,
-                 message);
+                 message,
+                 line);
 
     if(exists == true){
       ColorModifier blue(ColorCode::FG_BLUE, state.color_mode, true);
       ColorModifier regular(ColorCode::FG_DEFAULT, state.color_mode, false);
-      if(state.color_mode == true){
+      if(state.color_mode == true && state.skip_me == false){
         std::cout << "[Matching Expression: " << blue << match.str(0) << regular << "]";
       }
-      else{
+      else if(state.skip_me == false) {
         std::cout << "[Matching Expression: " << match.str(0) << "]";
       }
       std::cout << "\n\n";
@@ -265,7 +303,7 @@ void CheckPattern(Configuration& state,
 }
 
 void CheckStatement(Configuration& state,
-                    const std::string& sql_statement){
+                    const std::string& sql_statement, int line){
 
   // TRANSFORM TO LOWER CASE
   auto statement = sql_statement;
@@ -283,71 +321,71 @@ void CheckStatement(Configuration& state,
 
   // LOGICAL DATABASE DESIGN
 
-  CheckMultiValuedAttribute(state, statement, print_statement);
+  CheckMultiValuedAttribute(state, statement, print_statement, line);
 
-  CheckRecursiveDependency(state, statement, print_statement);
+  CheckRecursiveDependency(state, statement, print_statement, line);
 
-  CheckPrimaryKeyExists(state, statement, print_statement);
+//  CheckPrimaryKeyExists(state, statement, print_statement, line);
 
-  CheckGenericPrimaryKey(state, statement, print_statement);
+  CheckGenericPrimaryKey(state, statement, print_statement, line);
 
-  CheckForeignKeyExists(state, statement, print_statement);
+  CheckForeignKeyExists(state, statement, print_statement, line);
 
-  CheckVariableAttribute(state, statement, print_statement);
+  CheckVariableAttribute(state, statement, print_statement, line);
 
-  CheckMetadataTribbles(state, statement, print_statement);
+  CheckMetadataTribbles(state, statement, print_statement, line);
 
   // PHYSICAL DATABASE DESIGN
 
-  CheckFloat(state, statement, print_statement);
+  CheckFloat(state, statement, print_statement, line);
 
-  CheckValuesInDefinition(state, statement, print_statement);
+//  CheckValuesInDefinition(state, statement, print_statement, line);
 
-  CheckExternalFiles(state, statement, print_statement);
+  CheckExternalFiles(state, statement, print_statement, line);
 
-  CheckIndexCount(state, statement, print_statement);
+  CheckIndexCount(state, statement, print_statement, line);
 
-  CheckIndexAttributeOrder(state, statement, print_statement);
+//  CheckIndexAttributeOrder(state, statement, print_statement, line);
 
   // QUERY
 
-  CheckSelectStar(state, statement, print_statement);
+  CheckSelectStar(state, statement, print_statement, line);
 
-  CheckJoinWithoutEquality(state, statement, print_statement);
+  CheckJoinWithoutEquality(state, statement, print_statement, line);
 
-  CheckNullUsage(state, statement, print_statement);
+  CheckNullUsage(state, statement, print_statement, line);
 
-  CheckNotNullUsage(state, statement, print_statement);
+//  CheckNotNullUsage(state, statement, print_statement, line);
 
-  CheckConcatenation(state, statement, print_statement);
+  CheckConcatenation(state, statement, print_statement, line);
 
-  CheckGroupByUsage(state, statement, print_statement);
+  CheckGroupByUsage(state, statement, print_statement, line);
 
-  CheckOrderByRand(state, statement, print_statement);
+  CheckOrderByRand(state, statement, print_statement, line);
 
-  CheckPatternMatching(state, statement, print_statement);
+  CheckPatternMatching(state, statement, print_statement, line);
 
-  CheckSpaghettiQuery(state, statement, print_statement);
+//  CheckSpaghettiQuery(state, statement, print_statement, line);
 
-  CheckJoinCount(state, statement, print_statement);
+  CheckJoinCount(state, statement, print_statement, line);
 
-  CheckDistinctCount(state, statement, print_statement);
+  CheckDistinctCount(state, statement, print_statement, line);
 
-  CheckImplicitColumns(state, statement, print_statement);
+  CheckImplicitColumns(state, statement, print_statement, line);
 
-  CheckHaving(state, statement, print_statement);
+  CheckHaving(state, statement, print_statement, line);
 
-  CheckNesting(state, statement, print_statement);
+  CheckNesting(state, statement, print_statement, line);
 
-  CheckOr(state, statement, print_statement);
+  CheckOr(state, statement, print_statement, line);
 
-  CheckUnion(state, statement, print_statement);
+  CheckUnion(state, statement, print_statement, line);
 
-  CheckDistinctJoin(state, statement, print_statement);
+  CheckDistinctJoin(state, statement, print_statement, line);
 
   // APPLICATION
 
-  CheckReadablePasswords(state, statement, print_statement);
+  CheckReadablePasswords(state, statement, print_statement, line);
 
 
 }

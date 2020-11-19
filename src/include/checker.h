@@ -13,7 +13,7 @@ bool Check(Configuration& state);
 
 // Check a SQL statement
 void CheckStatement(Configuration& state,
-                    const std::string& sql_statement);
+                    const std::string& sql_statement, int line);
 
 // Check a pattern
 void CheckPattern(Configuration& state,
@@ -25,6 +25,7 @@ void CheckPattern(Configuration& state,
                   const std::string title,
                   const std::string message,
                   const bool exists,
+                  const int line,
                   const size_t min_count = 0);
 
 }  // namespace machine

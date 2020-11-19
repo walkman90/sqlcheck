@@ -57,6 +57,7 @@ class Configuration {
      delimiter(";"),
      risk_level(RiskLevel::RISK_LEVEL_ALL),
      verbose(false),
+     skip_me(false),
      testing_mode(false) {
   }
 
@@ -74,6 +75,9 @@ class Configuration {
 
   // verbose mode
   bool verbose;
+
+  // skip matching expression
+  bool skip_me;
 
   // test stream
   std::unique_ptr<std::istringstream> test_stream;
