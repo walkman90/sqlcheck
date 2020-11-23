@@ -554,17 +554,16 @@ void CheckSelectStar(Configuration& state,
   std::string title = "SELECT *";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
 
-  std::string message1 =
-      "● Inefficiency in moving data to the consumer:  "
+  auto message =
+      "● SELECT * : "
+      "»Inefficiency in moving data to the consumer: "
       "When you SELECT *, you're often retrieving more columns from the database than "
       "your application really needs to function. This causes more data to move from "
       "the database server to the client, slowing access and increasing load on your "
       "machines, as well as taking more time to travel across the network. This is "
       "especially true when someone adds new columns to underlying tables that didn't "
-      "exist and weren't needed when the original consumers coded their data access.";
-
-  std::string message2 =
-      "● Indexing issues:  "
+      "exist and weren't needed when the original consumers coded their data access; "
+      "»Indexing issues:  "
       "Consider a scenario where you want to tune a query to a high level of performance. "
       "If you were to use *, and it returned more columns than you actually needed, "
       "the server would often have to perform more expensive methods to retrieve your "
@@ -573,10 +572,8 @@ void CheckSelectStar(Configuration& state,
       "(including all columns [shudder]), the next guy who came around and added a column "
       "to the underlying table would cause the optimizer to ignore your optimized covering "
       "index, and you'd likely find that the performance of your query would drop "
-      "substantially for no readily apparent reason.";
-
-  std::string message3 =
-      "● Binding Problems:  "
+      "substantially for no readily apparent reason; "
+      "»Binding Problems:  "
       "When you SELECT *, it's possible to retrieve two columns of the same name from two "
       "different tables. This can often crash your data consumer. Imagine a query that joins "
       "two tables, both of which contain a column called \"ID\". How would a consumer know "
@@ -586,8 +583,6 @@ void CheckSelectStar(Configuration& state,
       "your columns whatever you want, but the next guy who comes along might have no way of "
       "knowing that he has to worry about adding a column which will collide with your "
       "already-developed names.";
-
-  auto message = message1 + "\n" + message2 + "\n" + message3;
 
   CheckPattern(state,
                sql_statement,
@@ -807,7 +802,7 @@ void CheckPatternMatching(Configuration& state,
                           bool& print_statement,
                           int line){
 
-  std::regex pattern("(\blike\b)|(\bregexp\b)|(\bsimilar to\b)");
+  std::regex pattern("(\\blike\\b)|(\\bregexp\\b)|(\\bsimilar to\\b)");
   std::string title = "Pattern Matching Usage";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
 
@@ -895,7 +890,7 @@ void CheckJoinCount(Configuration& state,
                     bool& print_statement,
                     int line){
 
-  std::regex pattern("(\bjoin\b)");
+  std::regex pattern("(\\bjoin\\b)");
   std::string title = "Reduce Number of JOINs";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
   std::size_t min_count = 5;
@@ -924,7 +919,7 @@ void CheckDistinctCount(Configuration& state,
                         bool& print_statement,
                         int line){
 
-  std::regex pattern("(\bdistinct\b)");
+  std::regex pattern("(\\bdistinct\\b)");
   std::string title = "Eliminate Unnecessary DISTINCT Conditions";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
   std::size_t min_count = 5;
@@ -986,7 +981,7 @@ void CheckHaving(Configuration& state,
                  bool& print_statement,
                  int line){
 
-  std::regex pattern("(\bhaving\b)");
+  std::regex pattern("(\\bhaving\\b)");
   std::string title = "HAVING Clause Usage";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
 
@@ -1017,7 +1012,7 @@ void CheckNesting(Configuration& state,
                   bool& print_statement,
                   int line){
 
-  std::regex pattern("(\bselect\b)");
+  std::regex pattern("(\\bselect\\b)");
   std::string title = "Nested sub queries";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
   std::size_t min_count = 2;
@@ -1056,7 +1051,7 @@ void CheckOr(Configuration& state,
                  bool& print_statement,
                  int line){
 
-  std::regex pattern("(\bor\b)");
+  std::regex pattern("(\\bor\\b)");
   std::string title = "OR Usage";
   PatternType pattern_type = PatternType::PATTERN_TYPE_QUERY;
 

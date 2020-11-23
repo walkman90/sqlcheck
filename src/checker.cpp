@@ -164,7 +164,7 @@ std::string WrapText(const std::string& text){
         space_left -= word.length() + 1;
       }
 
-      if(word.back() == ':'){
+      if(word.back() == ':' || word.back() == ';'){
         newline = true;
       }
       else{
