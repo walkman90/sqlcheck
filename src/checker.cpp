@@ -353,7 +353,7 @@ void CheckStatement(Configuration& state,
 
   CheckJoinWithoutEquality(state, statement, print_statement, line);
 
-  CheckNullUsage(state, statement, print_statement, line);
+//  CheckNullUsage(state, statement, print_statement, line);
 
 //  CheckNotNullUsage(state, statement, print_statement, line);
 
